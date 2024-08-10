@@ -1,4 +1,7 @@
-document.addEventListener('DOMContentLoaded', () => {
+const bindDesktop = (adapter) => {
+    document.getElementById('desktop-app-tab-content-img').setAttribute('src', `${adapter.questPath}/img/CyberTimesExclusive.png`);
+
+
     const allApps = document.getElementsByClassName('desktop-app-tab')
     for (let index = 0; index < allApps.length; index++) {
         allApps[index].addEventListener('click', focusOnTab)
@@ -194,4 +197,4 @@ document.addEventListener('DOMContentLoaded', () => {
         cryptCodeLineEdit.textContent = ''
         cryptCodeLineEdit.appendChild(input)
     }
-})
+}

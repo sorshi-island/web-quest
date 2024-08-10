@@ -1,7 +1,22 @@
 let level = 0;
 
+const loadStages = async (qp) => {
+    const stage1Promise = fetch(`${qp}/stages/stage-1.html`).then(response => response.text());
+    const stage2Promise = fetch(`${qp}/stages/stage-2.html`).then(response => response.text());
+    const stage3Promise = fetch(`${qp}/stages/stage-3.html`).then(response => response.text());
 
-document.addEventListener('DOMContentLoaded', () => {
+    const [stage1Html, stage2Html, stage3Html] = await Promise.all([stage1Promise, stage2Promise, stage3Promise]);
+
+    document.getElementById('stage-1').innerHTML = stage1Html;
+    document.getElementById('stage-2').innerHTML = stage2Html;
+    document.getElementById('stage-3').innerHTML = stage3Html;
+
+    console.dir('[] - Fetched all stages');
+}
+
+async function bind(adapter){
+
+    await loadStages(adapter.questPath)
     const stage1 = document.getElementById('stage-1')
     const stage2 = document.getElementById('stage-2')
     const stage3 = document.getElementById('stage-3')
@@ -15,10 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const stage2MessageSpan = document.getElementById('stage-2-message')
 
     start.addEventListener('click', startQuest);
+    console.dir('[x] Key init attempt')
     key.addEventListener('click', second)
 
-
     function startQuest() {
+        console.dir(123)
         if (level !== 0) return;
 
         level += 1;
@@ -177,6 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
             userButton1.textContent = ''
             userButton2.textContent = ''
             const airSupply = document.getElementById('air-supply')
+
+            const img = (airSupply.getElementsByTagName('img'))[0]
+            img ? img.setAttribute('src', adapter.questPath+'/img/accum.png') : ''
+
             userButton2.removeEventListener('click', thirdQuestionCorrectAction)
             userButton1.removeEventListener('click', wrongThirdAnswerAction)
 
@@ -196,10 +216,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function watchForAirSupply(watchEvent) {
             if (!currentTarget) return; // Если нет целевого элемента, не делаем ничего
-            const mouseX = watchEvent.clientX;
-            const mouseY = watchEvent.clientY;
-            currentTarget.style.top = `${mouseY - 10}px`;
-            currentTarget.style.left = `${mouseX - 20}px`;
+            const modal = document.getElementById('modal-content');
+            const rect = modal.getBoundingClientRect();
+
+            // Получаем координаты мыши относительно модального окна
+            const mouseX = watchEvent.clientX - rect.left;
+            const mouseY = watchEvent.clientY - rect.top;
+
+            currentTarget.style.top = `${mouseY - 30}px`;
+            currentTarget.style.left = `${mouseX - 30}px`;
         }
 
         function checkItemUnder(watchEvent, targetId) {
@@ -254,15 +279,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const gravity = 0.50; // Гравитация, может быть изменена для эффекта
             let velocity = 0;
 
+            const modal = document.getElementById('modal-content');
             function fall() {
                 velocity += gravity; // Увеличение скорости
                 position += velocity; // Изменение позиции
 
-                if (position < window.innerHeight - div.offsetHeight) {
+                if (position < modal.innerHeight - div.offsetHeight) {
                     div.style.top = `${position}px`; // Обновление позиции элемента
                     requestAnimationFrame(fall); // Продолжение анимации
                 } else {
-                    div.style.top = `${window.innerHeight - div.offsetHeight}px`; // Остановка на дне
+                    div.style.top = `${modal.innerHeight - div.offsetHeight}px`; // Остановка на дне
                 }
             }
 
@@ -307,8 +333,9 @@ document.addEventListener('DOMContentLoaded', () => {
         startClocks()
         setInterval(startClocks, 60000);
 
+        bindDesktop(adapter)
         document.getElementById('main').classList.add('pc-mode')
     }
 
-})
+}
 
